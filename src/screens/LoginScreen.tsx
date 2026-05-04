@@ -63,7 +63,7 @@ export default function LoginScreen({ navigation }: Props) {
             autoCapitalize="none"
             keyboardType="email-address"
             placeholderTextColor="#9CA3AF"
-            className="flex-1 ml-3"
+            className="flex-1 ml-3 text-neutral-900 placeholder:text-gray-400"
           />
         </View>
 
@@ -76,7 +76,7 @@ export default function LoginScreen({ navigation }: Props) {
             secureTextEntry
             onChangeText={setPassword}
             placeholderTextColor="#9CA3AF"
-            className="flex-1 ml-3"
+            className="flex-1 ml-3 text-neutral-900 placeholder:text-gray-400"
           />
         </View>
       </View>

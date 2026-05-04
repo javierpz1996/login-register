@@ -98,7 +98,7 @@ export default function HomeScreen({ navigation }: Props) {
             value={newTitle}
             onChangeText={setNewTitle}
             placeholderTextColor="#9CA3AF"
-            className="flex-1 ml-3"
+            className="flex-1 ml-3 text-neutral-900 placeholder:text-gray-400"
           />
         </View>
       </View>

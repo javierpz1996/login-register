@@ -9,7 +9,7 @@ export interface AuthUser {
   password: string;
 }
 
-// 🔒 hash password
+// hash password
 const hashPassword = async (password: string): Promise<string> => {
   return await Crypto.digestStringAsync(
     Crypto.CryptoDigestAlgorithm.SHA256,
@@ -17,7 +17,7 @@ const hashPassword = async (password: string): Promise<string> => {
   );
 };
 
-// 🧪 REGISTRO
+// REGISTRO
 export const register = async (
   email: string,
   password: string
@@ -39,7 +39,7 @@ export const register = async (
   return newUser;
 };
 
-// 🔑 LOGIN
+// LOGIN
 export const login = async (
   email: string,
   password: string
@@ -59,12 +59,12 @@ export const login = async (
   return user;
 };
 
-// 🚪 LOGOUT
+// LOGOUT
 export const logout = async (): Promise<void> => {
   await removeItem(SESSION_KEY);
 };
 
-// 🔎 CHECK SESSION
+// CHECK SESSION
 export const getSession = async (): Promise<AuthUser | null> => {
   return await getItem<AuthUser>(SESSION_KEY);
 };
