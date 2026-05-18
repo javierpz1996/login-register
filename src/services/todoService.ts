@@ -38,6 +38,21 @@ export async function addTodo(title: string): Promise<Todo> {
   return todo;
 }
 
+export async function updateTodo(id: string, title: string): Promise<Todo> {
+  const trimmed = title.trim();
+  if (!trimmed) throw new Error("El todo no puede estar vacío");
+
+  const todos = await readTodos();
+  const index = todos.findIndex((t) => t.id === id);
+  if (index === -1) throw new Error("Todo no encontrado");
+
+  const updated: Todo = { ...todos[index], title: trimmed };
+  const next = [...todos];
+  next[index] = updated;
+  await writeTodos(next);
+  return updated;
+}
+
 export async function deleteTodo(id: string): Promise<void> {
   const todos = await readTodos();
   const next = todos.filter((t) => t.id !== id);

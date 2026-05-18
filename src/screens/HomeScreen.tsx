@@ -12,7 +12,13 @@ import type { RootStackParamList } from "../navigation/types";
 import Toast from "react-native-toast-message";
 import { MaterialIcons } from "@expo/vector-icons";
 import { logout } from "../services/authService";
-import { addTodo, deleteTodo, listTodos, type Todo } from "../services/todoService";
+import {
+  addTodo,
+  deleteTodo,
+  listTodos,
+  updateTodo,
+  type Todo,
+} from "../services/todoService";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
@@ -22,8 +28,14 @@ export default function HomeScreen({ navigation }: Props) {
   const [newTitle, setNewTitle] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
 
   const canAdd = useMemo(() => newTitle.trim().length > 0 && !isSaving, [newTitle, isSaving]);
+  const canSaveEdit = useMemo(
+    () => editingTitle.trim().length > 0 && !isSaving,
+    [editingTitle, isSaving],
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -60,9 +72,41 @@ export default function HomeScreen({ navigation }: Props) {
     try {
       await deleteTodo(id);
       setTodos((prev) => prev.filter((t) => t.id !== id));
+      if (editingId === id) {
+        setEditingId(null);
+        setEditingTitle("");
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Error desconocido";
       Toast.show({ type: "error", text1: "Error", text2: message });
+    }
+  };
+
+  const startEditing = (todo: Todo) => {
+    setEditingId(todo.id);
+    setEditingTitle(todo.title);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditingTitle("");
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId || !canSaveEdit) return;
+
+    try {
+      setIsSaving(true);
+      const updated = await updateTodo(editingId, editingTitle);
+      setTodos((prev) =>
+        prev.map((t) => (t.id === updated.id ? updated : t)),
+      );
+      cancelEditing();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error desconocido";
+      Toast.show({ type: "error", text1: "Error", text2: message });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -124,18 +168,58 @@ export default function HomeScreen({ navigation }: Props) {
           ListEmptyComponent={
             <Text className="text-neutral-300 mt-4">No hay todos todavía.</Text>
           }
-          renderItem={({ item }) => (
-            <View
-              className="flex-row items-center justify-between py-3 border-b border-neutral-700"
-            >
-              <Text className="flex-1 text-white">{item.title}</Text>
-              <Pressable onPress={() => handleDelete(item.id)}>
-                <Text style={{ color: "#DC2626", paddingHorizontal: 10 }}>
-                  Eliminar
-                </Text>
-              </Pressable>
-            </View>
-          )}
+          renderItem={({ item }) => {
+            const isEditing = editingId === item.id;
+
+            return (
+              <View className="py-3 border-b border-neutral-700 gap-2">
+                {isEditing ? (
+                  <>
+                    <TextInput
+                      value={editingTitle}
+                      onChangeText={setEditingTitle}
+                      placeholder="Editar todo..."
+                      placeholderTextColor="#9CA3AF"
+                      className="rounded-[10px] border border-neutral-600 bg-white px-4 py-3 text-neutral-900 placeholder:text-gray-400"
+                      autoFocus
+                    />
+                    <View className="flex-row justify-end gap-4">
+                      <Pressable onPress={cancelEditing} disabled={isSaving}>
+                        <Text className="text-neutral-300 font-semibold">
+                          Cancelar
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={handleUpdate}
+                        disabled={!canSaveEdit}
+                        style={{ opacity: canSaveEdit ? 1 : 0.5 }}
+                      >
+                        <Text className="text-white font-semibold">
+                          {isSaving ? "Guardando..." : "Guardar"}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </>
+                ) : (
+                  <View className="flex-row items-center justify-between">
+                    <Text className="flex-1 text-white">{item.title}</Text>
+                    <View className="flex-row items-center">
+                      <Pressable onPress={() => startEditing(item)}>
+                        <Text className="text-neutral-300 font-semibold px-2">
+                          Editar
+                        </Text>
+                      </Pressable>
+                      <Pressable onPress={() => handleDelete(item.id)}>
+                        <Text className="text-red-600 font-semibold px-2">
+                          Eliminar
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
+              </View>
+            );
+          }}
         />
       )}
 
